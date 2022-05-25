@@ -2,7 +2,7 @@
 # Nas próximas semanas, os itens presentes em mais de uma pasta serão substituídos por atalhos. O acesso a pastas e arquivos não mudará.Saiba mais
 
 #!/usr/bin/python3
-from enquadramento import Enquadramento
+from enq import Enquadramento
 import sys
 
 try:
@@ -15,8 +15,8 @@ msg = 'oi eu sou o jhonatan'
 
 serial = Enquadramento(porta, 10)
 
-n = serial.envia(msg.encode('ascii'))
-print('Enviou %d bytes' % n)
+serial.envia(msg.encode('ascii'))
+
 
 input('Digite ENTER para terminar:')
 

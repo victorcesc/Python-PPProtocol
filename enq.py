@@ -5,11 +5,12 @@ from serial import Serial
 
 class Enquadramento(Subcamada):
     def __init__(self,porta_serial,t_out):
-        Subcamada.__init__(self,porta_serial,t_out)
+        Subcamada.__init__(self)  
         self.porta_serial = porta_serial
+        self.t_out = t_out              
         self.buffer = bytearray() #buffer que recebe os bytes
         try:
-            self._serial = Serial(self._porta_serial, 9600, timeout=self._tout)
+            self._serial = Serial(self.porta_serial, 9600, timeout=self.t_out)
         except Exception as e:
             print('Não conseguiu acessar a porta serial', e)
             sys.exit(0)
@@ -18,6 +19,7 @@ class Enquadramento(Subcamada):
     
     def envia(self,dados:bytes):
         quadro = self.delimita(dados) #delimita os dados com as flags de quadro
+        print(quadro)
         self._serial.write(quadro) #escreve na porta serial
   
     def recebe(self):
