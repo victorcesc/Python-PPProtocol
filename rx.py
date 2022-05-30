@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from enquadramento import Enquadramento
+from enq import Enquadramento
 import sys
 
 try:

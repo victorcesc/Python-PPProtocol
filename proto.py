@@ -1,11 +1,13 @@
 import enq
-import adapt
-import poller
+import adp
+from serial import Serial
+from pypoller import poller
 ## exemplo da uniao das camadas do protocolo
 
-framing = enq.Enquadramento(Serial('/dev/pts/1',9600),1)
+# framing = enq.Enquadramento(Serial('/dev/pts/1',9600),1)
+framing = enq.Enquadramento('/dev/pts/1',1)
 
-terminal = adapt.Adaptacao()
+terminal = adp.Aplicacao()
 
 framing.conecta(terminal)
 

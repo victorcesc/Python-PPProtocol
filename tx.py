@@ -11,11 +11,12 @@ except:
   print('Uso: %s porta_serial' % sys.argv[0])
   sys.exit(0)
 
-msg = 'oi eu sou o jhonatan'
+msg = 'oi eu sou ~ o jhonatan'
 
 serial = Enquadramento(porta, 10)
 
 serial.envia(msg.encode('ascii'))
+# serial.envia(msg)
 
 
 input('Digite ENTER para terminar:')

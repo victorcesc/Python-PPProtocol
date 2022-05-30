@@ -31,11 +31,28 @@ class Enquadramento(Subcamada):
 
     def delimita(self, dados):
         quadro = bytearray()
+        self.esc(dados)
         quadro.append(0x7e)
         quadro += dados
         quadro.append(0x7e)
         return quadro
 
+    def esc(self, dados):
+        quadro = bytearray(dados)
+
+        x = quadro.find(0x7e)
+        print(x)
+        if x > 0:
+            
+            quadro.insert(x, 110)
+        
+        print(x)
+        # while(x > 0):
+        #     print(x)
+        #     quadro.insert(x, 0x7d)
+
+        return quadro
+        
 
     def state_rx(self,dados):
         pass
