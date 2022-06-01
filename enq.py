@@ -35,25 +35,21 @@ class Enquadramento(Subcamada):
         #self.enable_timeout()
         #maquina de estados
         
-
-
-<<<<<<< Updated upstream
     def esc(self, dados):
         quadro = bytearray(dados)
 
         x = quadro.find(0x7e)
-        print(x)
-        if x > 0:
-            
-            quadro.insert(x, 110)
-        
-        print(x)
+       # print(x)
+        if x > 0:            
+            quadro.insert(x, 110)        
+        #print(x)
         # while(x > 0):
         #     print(x)
         #     quadro.insert(x, 0x7d)
 
         return quadro
-=======
+
+        
     def state_rx(self,octeto):
         print("rx")
         print(octeto)        
@@ -63,7 +59,6 @@ class Enquadramento(Subcamada):
             self._fsm = self.state_esc
         if octeto.decode() != "~" and octeto.decode() != "}":
             self.buffer += octeto
->>>>>>> Stashed changes
         
 
     def state_idle(self,octeto):
@@ -80,19 +75,22 @@ class Enquadramento(Subcamada):
         print(octeto)
         if octeto.decode() == "}":
             self._fsm = self.state_esc
-        if octeto.decode() != "~":
-            self.buffer += octeto
-            self._fsm = self.state_rx
+        if octeto.decode() == "~":
+            self._fsm = self.state_prep
+        self.buffer += octeto
+        self._fsm = self.state_rx
         #if timeout:
-        #   self._fsm = self.state_idle(octeto) 
+       
         
         
     def state_esc(self,octeto):
+        print("esc")
         if octeto.decode() == "}" or octeto.decode() == "~": #or timeout
             #descarta
-            self._fsm = self.state_idle
-        octeto = xor(octeto,0x20)
-        self.buffer += octeto
+            self._fsm = self.state_idle                
+        octeto = chr(ord(octeto.decode()) ^ ord(bytes(" ",'utf-8').decode()))
+        self.buffer += octeto.encode()
+        self._fsm = self.state_rx
 
     def handle(self):
         
