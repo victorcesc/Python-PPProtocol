@@ -11,7 +11,7 @@ except:
   print('Uso: %s porta_serial' % sys.argv[0])
   sys.exit(0)
 
-msg = '~} 1 2 3~'
+msg = '~} 1 2 3 victor~'
 
 serial = Enquadramento(porta, 10)
 

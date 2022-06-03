@@ -15,17 +15,17 @@ porta = sys.argv[1]
 enq = Enquadramento(porta, Timeout)
 
 # Cria objeto Aplicacao
-#app = Aplicacao()
+app = Aplicacao()
 
 # Conecta as subcamadas
 # Deve ser feito a partir da subcamada inferior
-#enq.conecta(app)
+enq.conecta(app)
 
 # cria o Poller e registra os callbacks
 sched = poller.Poller()
 
 sched.adiciona(enq)
-# sched.adiciona(app)
+sched.adiciona(app)
 #enq.enable()
 #enq.enable_timeout()
 # entrega o controle ao Poller
