@@ -88,7 +88,7 @@ class Enquadramento(Subcamada):
         if octeto.decode() == "}" or octeto.decode() == "~": #or timeout
             #descarta
             self._fsm = self.state_idle                
-        octeto = chr(ord(octeto.decode()) ^ ord(bytes(" ",'utf-8').decode()))
+        octeto = chr(ord(octeto.decode()) ^ ord(bytes(" ",'utf-8').decode())) #xor com 0x20(" ")
         self.buffer += octeto.encode()
         self._fsm = self.state_rx
 
@@ -97,11 +97,13 @@ class Enquadramento(Subcamada):
         #Ao termino das operacoes para enviar para a camada superior
         #octeto = self.porta_serial.read(1)
         # self.buffer += octeto   
-        self.recebe()                    
+        self.recebe() 
+        print(len(self.buffer))                   
         if len(self.buffer) == 8: 
+            
             print(self.buffer)                     
-            #self.upper.recebe(bytes(self.buffer)) 
-            #self.buffer.clear()       
+            self.upper.recebe(bytes(self.buffer)) 
+            self.buffer.clear()       
         
 
     def handle_timeout(self):
