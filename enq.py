@@ -75,10 +75,10 @@ class Enquadramento(Subcamada):
         print(octeto)
         if octeto.decode() == "}":
             self._fsm = self.state_esc
-        if octeto.decode() == "~":
-            self._fsm = self.state_prep
-        self.buffer += octeto
-        self._fsm = self.state_rx
+        if octeto.decode() != "~" and octeto.decode() != "}":
+            self.buffer += octeto
+            self._fsm = self.state_rx
+        
         #if timeout:
        
         
