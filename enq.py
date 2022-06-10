@@ -2,6 +2,7 @@ from operator import xor
 import sys
 from subcamada import Subcamada
 from serial import Serial
+from quadro import Quadro
 
 
 class Enquadramento(Subcamada):
