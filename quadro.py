@@ -24,5 +24,4 @@ class Quadro:
         self.quadro += self.fcs
         self.quadro.append(0x7e)
 
-    def deserialize(self):
-        pass
+   
