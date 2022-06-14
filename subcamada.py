@@ -8,10 +8,10 @@ class Subcamada(poller.Callback):
         self.upper = None
         self.lower = None
 
-    def envia(self, quadro:Quadro):
+    def envia(self, quadro):
         self.lower.envia(quadro)
 
-    def recebe(self, quadro:Quadro):
+    def recebe(self, quadro):
         self.lower.recebe(quadro)
 
     def conecta(self, superior):

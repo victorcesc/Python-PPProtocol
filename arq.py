@@ -1,11 +1,13 @@
 import sys
 from subcamada import Subcamada
-import sys
 
-class Aplicacao(Subcamada):
+# ack = 0
+# Data = 1
+#verifica o id conexao correspondente que esta recebendo
+class Arq(Subcamada):
     
     def __init__(self):
-        Subcamada.__init__(self, sys.stdin)
+        Subcamada.__init__(self, *args)
         self._fsm = self.state_ocioso
   
     def recebe(self, quadro):
@@ -15,11 +17,11 @@ class Aplicacao(Subcamada):
     def envia(self,quadro):
         pass
 
-    def state_ocioso(self, type):
-      pass
+    def state_ocioso(self, tipo):
+        if tipo == 0
 
     def state_espera(self,type):
-      pass
+        
 
     def handle(self):
       # lê uma linha do teclado

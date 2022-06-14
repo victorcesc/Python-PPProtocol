@@ -1,4 +1,14 @@
 
+
+'''
+byte controle
+bit 7 = tipo de quadro
+bit 3 = sequencia
+
+bit 2 = indica qual ẽ o tipo de mensagem pra conteudo de conexao (0=dados 1=controle) 
+bit 0 e 1  =  {00 = CR // 01 = CC // 10 = DR // 11 = DC}
+'''
+
 class Quadro:
 
     def __init__(self, tipo, sequencia, reservado, proto, data,fcs):
