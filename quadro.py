@@ -12,10 +12,12 @@ bit 0 e 1  =  {00 = CR // 01 = CC // 10 = DR // 11 = DC}
 
 class Quadro:
 
-    def __init__(self, tipo, sequencia, reservado, proto, data):
+    def __init__(self, tipo, sequencia, tipo_sessao, msg_sessao, id_sessao, proto, data):
         self.tipo = tipo
         self.sequencia = sequencia
-        self.reservado = reservado
+        self.tipo_sessao = tipo_sessao
+        self.msg_sessao = msg_sessao
+        self.sessao = id_sessao
         self.controle = 0
         if self.tipo == 0:
             self.proto = proto    
@@ -29,12 +31,18 @@ class Quadro:
 
         # modifica o bit 7 do byte de controle para indicar o tipo
         # e o bit 3 para indicar a sequencia
-        self.controle |= (7 << self.tipo)
-        self.controle |= (3 << self.sequencia)
+        self.controle |= (self.tipo << 7)
+        self.controle |= (self.sequencia << 3)
+
+        # modifica o bit 2 do byte de controle da sessão para indicar o tipo
+        # e o bit 1 e 0 para indicar o tipo de mensagem de controle
+        self.controle |= (self.tipo_sessao << 2)
+        self.controle |= (self.msg_sessao << 0)
 
         # adiciona o byte de controle ao quadro
+        # self.controle = 0x04
         self.quadro.append(self.controle)
-        self.quadro.append(self.reservado)
+        self.quadro.append(self.sessao)
 
         # se o tipo é 0 (dados)
         # adiciona o byte de proto ao quadro
