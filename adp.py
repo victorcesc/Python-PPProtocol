@@ -1,11 +1,13 @@
 import sys
+from quadro import Quadro
 from subcamada import Subcamada
-import sys
+
 
 class Aplicacao(Subcamada):
     
     def __init__(self):
         Subcamada.__init__(self, sys.stdin)
+        self.id = 0
   
     def recebe(self, dados:bytes):
       # mostra na tela os dados recebidos da subcamada inferior
@@ -13,11 +15,10 @@ class Aplicacao(Subcamada):
 
     def handle(self):
       # lê uma linha do teclado
+      
       dados = sys.stdin.readline()
-
-      # converte para bytes ... necessário somente
-      # nesta aplicação de teste, que lê do terminal
-      dados = dados.encode('utf8') 
+      quadro = Quadro(tiposessao = 0,msgarq = 0,idsessao = self.id,sequencia = 0,data = dados)      
+      self.id = self.id + 1
 
       # envia os dados para a subcamada inferior (self.lower)
-      self.lower.envia(dados)
+      self.lower.envia(quadro)

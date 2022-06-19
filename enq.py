@@ -17,13 +17,13 @@ class Enquadramento(Subcamada):
         self._fsm = self.state_idle
 
     
-    def envia(self,dados:bytes):
-        quadro = bytearray()
-        self.esc(dados)
-        quadro.append(0x7e)
-        quadro += dados
-        quadro.append(0x7e)
-        self._serial.write(quadro) #escreve na porta serial
+    def envia(self,quadro:Quadro):        
+        #self.esc(dados) 
+        dados = bytearray()
+        dados.append(0x7e)
+        dados = quadro.serialize()
+        dados.append(0x7e)      
+        self._serial.write() #escreve na porta serial
   
     def recebe(self):
         #logica de recepcao do enquadramento - fsm   
@@ -100,10 +100,9 @@ class Enquadramento(Subcamada):
         # self.buffer += octeto   
         self.recebe() 
         print(len(self.buffer))                   
-        if len(self.buffer) == 8: 
-            
+        if len(self.buffer) == 8:             
             print(self.buffer)                     
-            self.upper.recebe(bytes(self.buffer)) 
+            self.upper.recebe(bytes(self.buffer)) #envia p camada de cima
             self.buffer.clear()       
         
 

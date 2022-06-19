@@ -1,4 +1,3 @@
-
 import crc
 
 '''
@@ -8,56 +7,101 @@ bit 3 = sequencia
 
 bit 2 = indica qual ẽ o tipo de mensagem pra conteudo de conexao (0=dados 1=controle) 
 bit 0 e 1  =  {00 = CR // 01 = CC // 10 = DR // 11 = DC}
+
+
+~~~ DUVIDA PROTO ~~~
+
 '''
 
 class Quadro:
+    
+    '''
+    tiposessao :
+    0 - dados
+    1 - controle
 
-    def __init__(self, tipo, sequencia, tipo_sessao, msg_sessao, id_sessao, proto, data):
-        self.tipo = tipo
-        self.sequencia = sequencia
-        self.tipo_sessao = tipo_sessao
-        self.msg_sessao = msg_sessao
-        self.sessao = id_sessao
+    msgarq :
+    0 - data
+    1 - ack
+    
+    
+    '''
+    def __init__(self, **kwargs):
         self.controle = 0
-        if self.tipo == 0:
-            self.proto = proto    
-        self.data = data
+        if kwargs is not None:
+
+            if 'tiposessao' in kwargs:
+                self.tipoSessao = kwargs['tiposessao']
+            else:
+                raise ValueExcpetion('falta o bit de tipo de sessao')
+
+            if 'msgarq' in kwargs:
+                self.tipoMsgArq = kwargs['msgarq']
+            else:
+                self.tipoMsgArq = 0
+
+            if 'msgcontrole' in kwargs:
+                self.tipoMsgControle = kwargs['msgcontrole']
+            else:
+                self.tipoMsgControle = 0
+
+            if 'sequencia' in kwargs:
+                self.sequencia = kwargs['sequencia']
+            else:
+                raise ValueException('falta o bit de sequencia') 
+            
+            if 'idsessao' in kwargs:
+                self.idSessao = kwargs['idsessao']
+            else: 
+                raise ValueException('falta o byte de idSessao')
+
+            if 'idproto' in kwargs:
+                self.idProto = kwargs['idproto']
+            else:
+                self.idProto = 1
+            
+            if 'data' in kwargs:
+                self.data = kwargs['data']
+            else:
+                self.data = ""
+
+
 
     def serialize(self):
         # cria um vetor de bytes
-        self.quadro = bytearray()
-        # adiciona o delimitador do quadro
-        self.quadro.append(0x7e)
-
+        self.quadro = bytearray()        
         # modifica o bit 7 do byte de controle para indicar o tipo
         # e o bit 3 para indicar a sequencia
-        self.controle |= (self.tipo << 7)
+        self.controle |= (self.tipoMsgArq << 7)
         self.controle |= (self.sequencia << 3)
-
-        # modifica o bit 2 do byte de controle da sessão para indicar o tipo
-        # e o bit 1 e 0 para indicar o tipo de mensagem de controle
-        self.controle |= (self.tipo_sessao << 2)
-        self.controle |= (self.msg_sessao << 0)
-
+        self.controle |= (self.tipoSessao << 2)
+        if self.tipoMsgControle == 0:
+            self.controle |= (0 << 1)
+            self.controle |= (0 << 0)
+        if self.tipoMsgControle == 1:
+            self.controle |= (0 << 1)
+            self.controle |= (1 << 0)
+        if self.tipoMsgControle == 2:
+            self.controle |= (1 << 1)
+            self.controle |= (0 << 0)
+        if self.tipoMsgControle == 3:
+            self.controle |= (1 << 1)
+            self.controle |= (1 << 0)
         # adiciona o byte de controle ao quadro
-        # self.controle = 0x04
         self.quadro.append(self.controle)
-        self.quadro.append(self.sessao)
+        self.quadro.append(self.idSessao)
 
         # se o tipo é 0 (dados)
         # adiciona o byte de proto ao quadro
-        if self.tipo == 0:
-            self.quadro.append(self.proto)
+        if self.tipoMsgArq == 0:
+            self.quadro.append(self.idProto)
 
         # adiciona os dados ao quadro
         self.quadro += self.data.encode()
 
         # gerar crc e formata o quadro com o fcs no final
         fcs = crc.CRC16(self.quadro)
-        self.quadro = fcs.gen_crc()
-
-        # delimitador de quadro
-        self.quadro.append(0x7e)
+        self.quadro = fcs.gen_crc()        
 
         # retorna o quadro
         return self.quadro
