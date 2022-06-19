@@ -23,7 +23,7 @@ class Enquadramento(Subcamada):
         dados.append(0x7e)
         dados = quadro.serialize()
         dados.append(0x7e)      
-        self._serial.write() #escreve na porta serial
+        self._serial.write(dados) #escreve na porta serial
   
     def recebe(self):
         #logica de recepcao do enquadramento - fsm   
