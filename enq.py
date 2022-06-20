@@ -21,8 +21,9 @@ class Enquadramento(Subcamada):
         #self.esc(dados) 
         dados = bytearray()
         dados.append(0x7e)
-        dados = quadro.serialize()
-        dados.append(0x7e)      
+        dados += quadro.serialize()        
+        dados.append(0x7e)   
+        print(dados)   
         self._serial.write(dados) #escreve na porta serial
   
     def recebe(self):
@@ -54,16 +55,16 @@ class Enquadramento(Subcamada):
     def state_rx(self,octeto):
         print("rx")
         print(octeto)        
-        if octeto.decode() == "~":
+        if octeto.decode(errors='replace') == "~":
             self._fsm = self.state_idle
-        if octeto.decode() == "}":
+        if octeto.decode(errors='replace') == "}":
             self._fsm = self.state_esc
-        if octeto.decode() != "~" and octeto.decode() != "}":
+        if octeto.decode(errors='replace') != "~" and octeto.decode(errors='replace') != "}":
             self.buffer += octeto
         
 
     def state_idle(self,octeto):
-        if octeto.decode() == "~":
+        if octeto.decode(errors='replace') == "~":
             print(octeto)
             print("entrou")
             self._fsm = self.state_prep
@@ -74,9 +75,9 @@ class Enquadramento(Subcamada):
         print(self._fsm)
         print("prep")
         print(octeto)
-        if octeto.decode() == "}":
+        if octeto.decode(errors='replace') == "}":
             self._fsm = self.state_esc
-        if octeto.decode() != "~" and octeto.decode() != "}":
+        if octeto.decode(errors='replace') != "~" and octeto.decode(errors='replace') != "}":
             self.buffer += octeto
             self._fsm = self.state_rx
         
@@ -86,7 +87,7 @@ class Enquadramento(Subcamada):
         
     def state_esc(self,octeto):
         print("esc")
-        if octeto.decode() == "}" or octeto.decode() == "~": #or timeout
+        if octeto.decode(errors='replace') == "}" or octeto.decode(errors='replace') == "~": #or timeout
             #descarta
             self._fsm = self.state_idle                
         octeto = chr(ord(octeto.decode()) ^ ord(bytes(" ",'utf-8').decode())) #xor com 0x20(" ")
