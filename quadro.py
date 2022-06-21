@@ -22,8 +22,7 @@ class Quadro:
 
     msgarq :
     0 - data
-    1 - ack
-    
+    1 - ack    
     
     '''
     def __init__(self, **kwargs):
@@ -64,7 +63,10 @@ class Quadro:
                 self.data = kwargs['data']
             else:
                 self.data = ""
-
+            
+            if 'fcs' in kwargs:
+                self.fcs = kwargs['fcs']
+            
 
 
     def serialize(self):
@@ -105,3 +107,6 @@ class Quadro:
 
         # retorna o quadro
         return self.quadro
+
+    def deserializa(self, bytes):
+        pass

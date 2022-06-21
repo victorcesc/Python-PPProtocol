@@ -3,6 +3,7 @@ import sys
 from subcamada import Subcamada
 from serial import Serial
 from quadro import Quadro
+import crc
 
 
 class Enquadramento(Subcamada):
@@ -15,6 +16,7 @@ class Enquadramento(Subcamada):
         Subcamada.__init__(self,self._serial,t_out)                     
         self.buffer = bytearray() #buffer que recebe os bytes        
         self._fsm = self.state_idle
+    
 
     
     def envia(self,quadro:Quadro):        
@@ -56,7 +58,11 @@ class Enquadramento(Subcamada):
         print("rx")
         print(octeto)        
         if octeto.decode(errors='replace') == "~":
-            self._fsm = self.state_idle
+            fcs = crc.CRC16(self.buffer)            
+            if fcs.check_crc():                
+                self.upper.recebe(self.desserializa(self.buffer))
+                self.buffer.clear()                             
+                self._fsm = self.state_idle
         if octeto.decode(errors='replace') == "}":
             self._fsm = self.state_esc
         if octeto.decode(errors='replace') != "~" and octeto.decode(errors='replace') != "}":
@@ -81,10 +87,6 @@ class Enquadramento(Subcamada):
             self.buffer += octeto
             self._fsm = self.state_rx
         
-        #if timeout:
-       
-        
-        
     def state_esc(self,octeto):
         print("esc")
         if octeto.decode(errors='replace') == "}" or octeto.decode(errors='replace') == "~": #or timeout
@@ -94,19 +96,25 @@ class Enquadramento(Subcamada):
         self.buffer += octeto.encode()
         self._fsm = self.state_rx
 
-    def handle(self):
-        
-        #Ao termino das operacoes para enviar para a camada superior
-        #octeto = self.porta_serial.read(1)
-        # self.buffer += octeto   
+    def handle(self):        
+        #Ao termino das operacoes para enviar para a camada superior   
         self.recebe() 
-        print(len(self.buffer))                   
-        if len(self.buffer) == 8:             
-            print(self.buffer)                     
-            self.upper.recebe(bytes(self.buffer)) #envia p camada de cima
-            self.buffer.clear()       
-        
 
     def handle_timeout(self):
         self.buffer.clear()
         
+    def desserializa(self,dados:bytearray):        
+        msgarq = (dados[0] & (1 << 7) ) >> 7
+        sequencia = (dados[0] & (1 << 3) ) >> 3
+        tiposessao = (dados[0] & (1 << 2) ) >> 2   
+        msgcontrole = 0     
+        if tiposessao == 1:            
+            msgcontrole |= ( ( (dados[0] & (1 << 1) ) >> 1 ) << 1)
+            msgcontrole |= ( ( (dados[0] & (1 << 0) ) >> 0 ) << 0)
+        idSessao = dados[1]
+        idProto = dados[2]
+        data = dados[3:len(dados)-2].decode()
+        #fcs nao precisa pq é gerado qnd é serializado novamente
+        
+        quadro = Quadro(tiposessao = tiposessao, msgarq = msgarq,sequencia = sequencia,msgcontrole=msgcontrole,idsessao = idSessao,idproto = idProto,data = data)
+        return quadro

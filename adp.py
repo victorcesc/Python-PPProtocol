@@ -9,9 +9,9 @@ class Aplicacao(Subcamada):
         Subcamada.__init__(self, sys.stdin)
         self.id = 0
   
-    def recebe(self, dados:bytes):
+    def recebe(self, dados:Quadro):
       # mostra na tela os dados recebidos da subcamada inferior
-      print('RX:', dados)
+      print('RX:', bytes(dados.serialize()))
 
     def handle(self):
       # lê uma linha do teclado
