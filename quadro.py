@@ -1,3 +1,4 @@
+from operator import xor
 import crc
 
 '''
@@ -66,8 +67,19 @@ class Quadro:
             
             if 'fcs' in kwargs:
                 self.fcs = kwargs['fcs']
-            
 
+    def insertEsc(self, data):
+        new_data = bytearray()
+
+        for i in range(len(data)):
+            if data[i] == 0x7e:
+                new_data.append(0x7d)
+                new_data.append(xor(data[i], 0x02))
+                print('esc encontrado')
+            else:
+                new_data.append(data[i])
+
+        return new_data
 
     def serialize(self):
         # cria um vetor de bytes
@@ -99,7 +111,7 @@ class Quadro:
             self.quadro.append(self.idProto)
 
         # adiciona os dados ao quadro
-        self.quadro += self.data.encode()
+        self.quadro += self.insertEsc(self.data.encode())
 
         # gerar crc e formata o quadro com o fcs no final
         fcs = crc.CRC16(self.quadro)
