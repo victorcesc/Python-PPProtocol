@@ -22,7 +22,8 @@ class Arq(Subcamada):
            self.lower.envia(quadro)
            self._fsm = self.state_espera
            self._fsm(quadro)
-        #se esta no estado ocioso faz algo se n faz nada
+        self._fsm(quadro)
+        
 
     def state_ocioso(self, quadro:Quadro):
         #M = 0
