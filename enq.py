@@ -24,20 +24,14 @@ class Enquadramento(Subcamada):
         dados = bytearray()
         dados.append(0x7e)
         dados += quadro.serialize()        
-        dados.append(0x7e)   
-        print(dados)   
+        dados.append(0x7e)            
         self._serial.write(dados) #escreve na porta serial
   
     def recebe(self):
         #logica de recepcao do enquadramento - fsm   
         octeto = self._serial.read(1)
         self._fsm(octeto)  
-        print("octeto : ")
-        print(octeto)  
-        print(self.buffer)  
-        #self.enable()
-        #self.enable_timeout()
-        #maquina de estados
+
         
     def esc(self, dados):
         quadro = bytearray(dados)
@@ -54,9 +48,7 @@ class Enquadramento(Subcamada):
         return quadro
 
         
-    def state_rx(self,octeto):
-        print("rx")
-        print(octeto)        
+    def state_rx(self,octeto):              
         if octeto.decode(errors='replace') == "~":
             fcs = crc.CRC16(self.buffer)            
             if fcs.check_crc():                
@@ -70,25 +62,19 @@ class Enquadramento(Subcamada):
         
 
     def state_idle(self,octeto):
-        if octeto.decode(errors='replace') == "~":
-            print(octeto)
-            print("entrou")
+        if octeto.decode(errors='replace') == "~":            
             self._fsm = self.state_prep
         else:
             self._fsm = self.state_idle
         
     def state_prep(self,octeto):
-        print(self._fsm)
-        print("prep")
-        print(octeto)
         if octeto.decode(errors='replace') == "}":
             self._fsm = self.state_esc
         if octeto.decode(errors='replace') != "~" and octeto.decode(errors='replace') != "}":
             self.buffer += octeto
             self._fsm = self.state_rx
         
-    def state_esc(self,octeto):
-        print("esc")
+    def state_esc(self,octeto):        
         if octeto.decode(errors='replace') == "}" or octeto.decode(errors='replace') == "~": #or timeout
             #descarta
             self._fsm = self.state_idle                
@@ -96,8 +82,8 @@ class Enquadramento(Subcamada):
         self.buffer += octeto.encode()
         self._fsm = self.state_rx
 
-    def handle(self):        
-        #Ao termino das operacoes para enviar para a camada superior   
+    def handle(self): 
+        print(self.buffer)        
         self.recebe() 
 
     def handle_timeout(self):
@@ -114,7 +100,6 @@ class Enquadramento(Subcamada):
         idSessao = dados[1]
         idProto = dados[2]
         data = dados[3:len(dados)-2].decode()
-        #fcs nao precisa pq é gerado qnd é serializado novamente
-        
+        #fcs nao precisa pq é gerado qnd é serializado novamente        
         quadro = Quadro(tiposessao = tiposessao, msgarq = msgarq,sequencia = sequencia,msgcontrole=msgcontrole,idsessao = idSessao,idproto = idProto,data = data)
         return quadro

@@ -15,13 +15,14 @@ class Arq(Subcamada):
   
     def recebe(self, quadro:Quadro):
         self._fsm(quadro)
+        print(quadro.serialize())
       # dados recebidos da subcamada inferior
 
     def envia(self,quadro:Quadro):
+        self.quadro = quadro
         if self._fsm == self.state_ocioso:
            self.lower.envia(quadro)
            self._fsm = self.state_espera
-           self._fsm(quadro)
         self._fsm(quadro)
         
 
@@ -31,10 +32,9 @@ class Arq(Subcamada):
         if quadro.tipoMsgArq == 0 and quadro.sequencia == 0 :
           ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = 0,idsessao = quadro.idSessao)
           #ack idSessao tem q ser igual ao quadro data recebido
-          print("oi????")
           self.lower.envia(ack) #envia pra camada de baixo         
           self.upper.recebe(quadro) #envia p camada de cima
-        if quadro.tipoMsgArq == 1 and quadro.sequencia == 1:
+        if quadro.tipoMsgArq == 0 and quadro.sequencia == 1:
           ack_M  = Quadro(tiposessao = 0,msgarq = 1,sequencia = 1,idsessao = quadro.idSessao)
           self.lower.envia(ack_M)#envia p camada de baixo
 
@@ -59,4 +59,5 @@ class Arq(Subcamada):
       pass
 
     def handle_timeout(self):
-        pass
+        self.lower.envia(self.quadro)
+        self.quadro.clear()
