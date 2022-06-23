@@ -51,8 +51,10 @@ class Enquadramento(Subcamada):
     def state_rx(self,octeto):              
         if octeto.decode(errors='replace') == "~":
             fcs = crc.CRC16(self.buffer)            
-            if fcs.check_crc():                
-                self.upper.recebe(self.desserializa(self.buffer))
+            if fcs.check_crc(): 
+                quadro = self.desserializa(self.buffer)    
+                quadro.sequencia = 0 #sequencia de recepcao    
+                self.upper.recebe(quadro)
                 self.buffer.clear()                             
                 self._fsm = self.state_idle
         if octeto.decode(errors='replace') == "}":
@@ -82,8 +84,7 @@ class Enquadramento(Subcamada):
         self.buffer += octeto.encode()
         self._fsm = self.state_rx
 
-    def handle(self): 
-        print(self.buffer)        
+    def handle(self):       
         self.recebe() 
 
     def handle_timeout(self):
