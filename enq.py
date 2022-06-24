@@ -52,8 +52,7 @@ class Enquadramento(Subcamada):
         if octeto.decode(errors='replace') == "~":
             fcs = crc.CRC16(self.buffer)            
             if fcs.check_crc(): 
-                quadro = self.desserializa(self.buffer)    
-                quadro.sequencia = 0 #sequencia de recepcao    
+                quadro = self.desserializa(self.buffer)        
                 self.upper.recebe(quadro)
                 self.buffer.clear()                             
                 self._fsm = self.state_idle
@@ -100,7 +99,7 @@ class Enquadramento(Subcamada):
             msgcontrole |= ( ( (dados[0] & (1 << 0) ) >> 0 ) << 0)
         idSessao = dados[1]
         idProto = dados[2]
-        data = dados[3:len(dados)-2].decode()
+        data = dados[3:len(dados)-2].decode(errors='replace')
         #fcs nao precisa pq é gerado qnd é serializado novamente        
         quadro = Quadro(tiposessao = tiposessao, msgarq = msgarq,sequencia = sequencia,msgcontrole=msgcontrole,idsessao = idSessao,idproto = idProto,data = data)
         return quadro
