@@ -19,14 +19,14 @@ class Arq(Subcamada):
     def recebe(self, quadro:Quadro):
         self.quadro = quadro
         self._fsm(quadro)        
-        print("recebendo do enq : " , quadro.serialize())
+        print("[ARQ]: recebendo do enq : " , quadro.serialize())
       # dados recebidos da subcamada inferior
 
     def envia(self,quadro:Quadro):
         self.quadro = quadro
-        print( "recebendo da app : " , quadro.serialize())
+        print( "[ARQ]: recebendo da sessão : " , quadro.serialize())
         if self._fsm == self.state_ocioso:
-           print("enviando pro enq : " , quadro.serialize())
+           print("[ARQ]: enviando pro enq : " , quadro.serialize())
            self.lower.envia(quadro)#!dataN
            self._fsm = self.state_espera
         #self._fsm(quadro)
@@ -37,7 +37,6 @@ class Arq(Subcamada):
         #M = 0
         #_M = 1        
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.quadro.sequencia :#dataM 
-          print("opa")
           ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.quadro.sequencia,idsessao = quadro.idSessao)          
           #ack idSessao tem q ser igual ao quadro data recebido
           self.lower.envia(ack) #envia pra camada de baixo         

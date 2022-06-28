@@ -5,7 +5,6 @@ from serial import Serial
 from quadro import Quadro
 import crc
 
-
 class Enquadramento(Subcamada):
     def __init__(self,porta_serial,t_out):
         try:
@@ -17,22 +16,21 @@ class Enquadramento(Subcamada):
         self.buffer = bytearray() #buffer que recebe os bytes        
         self._fsm = self.state_idle
     
-
-    
-    def envia(self,quadro:Quadro):        
-        #self.esc(dados) 
+    def envia(self,quadro:Quadro):
+        #self.esc(dados)
         dados = bytearray()
         dados.append(0x7e)
         dados += quadro.serialize()        
-        dados.append(0x7e)            
+        dados.append(0x7e)
+        print("[ENQ]: escrevendo na porta serial" , quadro.serialize())
         self._serial.write(dados) #escreve na porta serial
   
     def recebe(self):
-        #logica de recepcao do enquadramento - fsm   
+        #logica de recepcao do enquadramento - fsm
         octeto = self._serial.read(1)
+        # print("[ENQ]: recebendo do arq" , octeto.serialize()) 
         self._fsm(octeto)  
 
-        
     def esc(self, dados):
         quadro = bytearray(dados)
 
@@ -46,7 +44,6 @@ class Enquadramento(Subcamada):
         #     quadro.insert(x, 0x7d)
 
         return quadro
-
         
     def state_rx(self,octeto):              
         if octeto.decode(errors='replace') == "~":
@@ -60,7 +57,6 @@ class Enquadramento(Subcamada):
             self._fsm = self.state_esc
         if octeto.decode(errors='replace') != "~" and octeto.decode(errors='replace') != "}":
             self.buffer += octeto
-        
 
     def state_idle(self,octeto):
         if octeto.decode(errors='replace') == "~":            
@@ -88,7 +84,7 @@ class Enquadramento(Subcamada):
 
     def handle_timeout(self):
         self.buffer.clear()
-        
+
     def desserializa(self,dados:bytearray):        
         msgarq = (dados[0] & (1 << 7) ) >> 7
         sequencia = (dados[0] & (1 << 3) ) >> 3

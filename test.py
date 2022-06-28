@@ -1,6 +1,7 @@
 from arq import Arq
 from pypoller import poller
 import sys
+from sessao import Sessao
 from subcamada import Subcamada
 from enq import Enquadramento
 from adp import Aplicacao
@@ -21,11 +22,14 @@ app = Aplicacao()
 
 arq = Arq(Timeout)
 
+sessao = Sessao(Timeout)
+
 # Conecta as subcamadas
 # Deve ser feito a partir da subcamada inferior
 #enq.conecta(app)
 enq.conecta(arq)
-arq.conecta(app)
+arq.conecta(sessao)
+sessao.conecta(app)
 # cria o Poller e registra os callbacks
 sched = poller.Poller()
 
