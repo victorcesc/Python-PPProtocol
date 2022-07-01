@@ -35,8 +35,17 @@ sched = poller.Poller()
 
 sched.adiciona(enq)
 sched.adiciona(app)
+
+if len(sys.argv) > 2:
+    if sys.argv[2] == '--master':
+        sessao.START()
+
 #sched.adiciona(arq)
 #enq.enable()
 #enq.enable_timeout()
 # entrega o controle ao Poller
-sched.despache()
+
+try:
+    sched.despache()
+except:
+    sys.exit()

@@ -128,6 +128,23 @@ class Sessao(Subcamada):
             # ir para o estado conectado
             self._fsm = self.state_conectado
 
+    def START(self):
+        # cria o quadro
+        dados = Quadro(tiposessao = 0,
+            msgarq = 0,
+            idsessao = 0,
+            sequencia = 0,
+            data = '')
+
+        print('[SESSÃO]: iniciando sessão com id =',dados.idSessao)
+
+        if self._fsm == self.state_desconectado:
+            # enviar um CR e
+            dados.tipoMsgControle = 0
+            self.lower.envia(dados)
+            # ir para o estado espera
+            self._fsm = self.state_espera
+
     def handle(self, dados:Quadro):
         print('handle')
 
