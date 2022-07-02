@@ -19,7 +19,7 @@ class Aplicacao(Subcamada):
       
       dados = sys.stdin.readline()
       
-      quadro = Quadro(tiposessao = 0,msgarq = 0,idsessao = self.id,sequencia = self.sequencia,data = dados)      
+      quadro = Quadro(tiposessao = 0,msgarq = 0,idsessao = 0,sequencia = self.sequencia,data = dados)      
       self.id = self.id + 1
       self.sequencia = not self.sequencia
       # envia os dados para a subcamada inferior (self.lower)

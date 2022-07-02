@@ -14,7 +14,7 @@ class Arq(Subcamada):
         Subcamada.__init__(self, timeout)
         self._fsm = self.state_ocioso
         self.quadro = None
-        self.enable_timeout()
+        
   
     def recebe(self, quadro:Quadro):
         self.quadro = quadro
@@ -23,6 +23,9 @@ class Arq(Subcamada):
       # dados recebidos da subcamada inferior
 
     def envia(self,quadro:Quadro):
+        if quadro.data == "reset":
+            self._fsm = self.state_ocioso
+            self.quadro = None
         self.quadro = quadro
         print( "[ARQ]: recebendo da sessão : " , quadro.serialize())
         if self._fsm == self.state_ocioso:
@@ -35,7 +38,8 @@ class Arq(Subcamada):
     #dataN = 1 transmitindo
     def state_ocioso(self, quadro:Quadro):
         #M = 0
-        #_M = 1        
+        #_M = 1
+        self.enable_timeout()        
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.quadro.sequencia :#dataM 
           ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.quadro.sequencia,idsessao = quadro.idSessao)          
           #ack idSessao tem q ser igual ao quadro data recebido

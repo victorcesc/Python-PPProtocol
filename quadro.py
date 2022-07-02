@@ -89,15 +89,19 @@ class Quadro:
         self.controle |= (self.tipoMsgArq << 7)
         self.controle |= (self.sequencia << 3)
         self.controle |= (self.tipoSessao << 2)
+        #CR
         if self.tipoMsgControle == 0:
             self.controle |= (0 << 1)
             self.controle |= (0 << 0)
+        #CC
         if self.tipoMsgControle == 1:
             self.controle |= (0 << 1)
             self.controle |= (1 << 0)
+        #DR
         if self.tipoMsgControle == 2:
             self.controle |= (1 << 1)
             self.controle |= (0 << 0)
+        #DC
         if self.tipoMsgControle == 3:
             self.controle |= (1 << 1)
             self.controle |= (1 << 0)

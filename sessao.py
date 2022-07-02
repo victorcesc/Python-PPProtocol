@@ -8,17 +8,19 @@ class Sessao(Subcamada):
         # define o estado desconectado como estado inicial da máquina de estado
         self._fsm = self.state_desconectado
         self.quadro = None
-    # se receber um START
+        self.master = 0
+        
+
     def envia(self, dados: Quadro):
         self.quadro = dados
         print("[SESSÃO]: recebendo da app: " , dados.serialize())
-        if self._fsm == self.state_desconectado:
+        if self._fsm == self.state_conectado:
             print("[SESSÃO]: enviando pro arq: " , dados.serialize())
-            # enviar um CR e
-            dados.tipoMsgControle = 0
+            # enviar um CR e            
             self.lower.envia(dados)
-            # ir para o estado espera
-            self._fsm = self.state_espera
+            # ir para o estado espera se for o iniciador
+            if self.master == 1:
+                self._fsm = self.state_espera
 
     def recebe(self, dados: Quadro):
         self.quadro = dados
@@ -30,26 +32,27 @@ class Sessao(Subcamada):
         print('[SESSÃO]: desconectado')
 
         # se receber um CR
-        if dados.tipoMsgControle == 0:
+        if dados.tipoMsgControle == 0: #CR
             # enviar um CC e
-            dados.tipoMsgControle = 1
-            self.lower.envia(dados)
+            
+            CC = Quadro(tiposessao = dados.tipoSessao,
+                msgcontrole = 1,sequencia = dados.sequencia,
+                idsessao = dados.idSessao)
+            self.lower.envia(CC)
             # ir para o estado conectado
             self._fsm = self.state_conectado
 
     # estado conectado da máquina de estado
     def state_conectado(self, dados:Quadro):
         print('[SESSÃO]: conectado')
-
+        self.enable_timeout()
         # se receber dados
-        if dados.tipoSessao == 0:
+        if dados.tipoSessao == 0 :
             # enviar mensagem para a aplicação e
-            dados.tipoSessao = 1
             self.upper.recebe(dados)
             # manter no estado atual
-
         # se receber mensagem da aplicação
-        elif dados.tipoSessao == 1:
+        if dados.tipoSessao == 1:
             # enviar dados e
             dados.tipoSessao = 0
             self.lower.envia(dados)
@@ -85,7 +88,12 @@ class Sessao(Subcamada):
         # se timeout ou receber um DC
         elif dados.tipoMsgControle == 3: # or timeout
             # enviar um reset para o arq
-            self.lower.envia(dados)
+            reset = Quadro(tiposessao = 1,
+                sequencia = dados.sequencia,
+                idsessao = dados.idSessao,
+                data = "reset")
+
+            self.lower.envia(reset)
             # ir para o estado desconectado
             self._fsm = self.state_desconectado
 
@@ -96,7 +104,6 @@ class Sessao(Subcamada):
         # se receber dados
         if dados.tipoSessao == 0:
             # enviar mensagem para a aplicação e
-            dados.tipoSessao = 1
             self.upper.recebe(dados)
             # manter no estado atual
 
@@ -128,20 +135,17 @@ class Sessao(Subcamada):
             # ir para o estado conectado
             self._fsm = self.state_conectado
 
+    #isso  é na app e nao na sessao !!!
     def START(self):
         # cria o quadro
-        dados = Quadro(tiposessao = 0,
-            msgarq = 0,
-            idsessao = 0,
-            sequencia = 0,
-            data = '')
-
-        print('[SESSÃO]: iniciando sessão com id =',dados.idSessao)
+        self.master = 1 # definido que esse é o iniciador da conexao
+        start = Quadro(tiposessao = 1,sequencia = 0,
+                idsessao = ,data="start")
+        print('[SESSÃO]: iniciando sessão com id =',start.idSessao)
 
         if self._fsm == self.state_desconectado:
-            # enviar um CR e
-            dados.tipoMsgControle = 0
-            self.lower.envia(dados)
+            # enviar um CR e           
+            self.lower.envia(start)
             # ir para o estado espera
             self._fsm = self.state_espera
 
@@ -153,4 +157,4 @@ class Sessao(Subcamada):
     # timeout
     def handle_timeout(self):
         self.disable_timeout()
-        self.disable()
+        
