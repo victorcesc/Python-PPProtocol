@@ -23,10 +23,10 @@ class Arq(Subcamada):
       # dados recebidos da subcamada inferior
 
     def envia(self,quadro:Quadro):
+        self.quadro = quadro
         if quadro.data == "reset":
             self._fsm = self.state_ocioso
-            self.quadro = None
-        self.quadro = quadro
+            self.quadro = None        
         print( "[ARQ]: recebendo da sessão : " , quadro.serialize())
         if self._fsm == self.state_ocioso:
            print("[ARQ]: enviando pro enq : " , quadro.serialize())
@@ -40,12 +40,12 @@ class Arq(Subcamada):
         #M = 0
         #_M = 1
         self.enable_timeout()        
-        if quadro.tipoMsgArq == 0 and quadro.sequencia == self.quadro.sequencia :#dataM 
+        if quadro.tipoMsgArq == 0 and quadro.sequencia == self.quadro.sequencia and  quadro.idSessao == self.quadro.idSessao:#dataM 
           ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.quadro.sequencia,idsessao = quadro.idSessao)          
           #ack idSessao tem q ser igual ao quadro data recebido
           self.lower.envia(ack) #envia pra camada de baixo         
           self.upper.recebe(quadro) #envia p camada de cima
-        if quadro.tipoMsgArq == 0 and quadro.sequencia !=  self.quadro.sequencia: #data_M
+        if (quadro.tipoMsgArq == 0 and quadro.sequencia !=  self.quadro.sequencia) and  quadro.idSessao == self.quadro.idSessao: #data_M
           print("recebeu data_M e enviou ack -- quadro recebido", quadro.sequencia)
           ack_M  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.quadro.sequencia,idsessao = quadro.idSessao)
           self.lower.envia(ack_M)#envia p camada de baixo
@@ -53,26 +53,24 @@ class Arq(Subcamada):
         #self._fsm = self.state_espera
 
     def state_espera(self, quadro:Quadro):
-        if quadro.tipoMsgArq == 0 and quadro.sequencia == self.quadro.sequencia: #ackM , app!msg
+        if quadro.tipoMsgArq == 0 and quadro.sequencia == self.quadro.sequencia and  quadro.idSessao == self.quadro.idSessao: #ackM , app!msg
             print("entrou no !ackM, app!msg")
             ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.quadro.sequencia,idsessao = quadro.idSessao)
             self.lower.envia(ack)
             self.upper.recebe(quadro)
             
-        if quadro.tipoMsgArq == 0 and quadro.sequencia != self.quadro.sequencia: #data_M
+        if (quadro.tipoMsgArq == 0 and quadro.sequencia != self.quadro.sequencia) and  quadro.idSessao == self.quadro.idSessao  : #data_M
             ack_M  = Quadro(tiposessao = 0,msgarq = 1,sequencia = not self.quadro.sequencia,idsessao = quadro.idSessao)
             self.lower.envia(ack_M)
             
-        if quadro.tipoMsgArq == 1 and quadro.sequencia != self.quadro.sequencia: #ack_N
+        if (quadro.tipoMsgArq == 1 and quadro.sequencia != self.quadro.sequencia) and  quadro.idSessao == self.quadro.idSessao: #ack_N
             self._fsm = self.state_espera
             
-        if quadro.tipoMsgArq == 1 and quadro.sequencia == self.quadro.sequencia: #ackN
+        if quadro.tipoMsgArq == 1 and quadro.sequencia == self.quadro.sequencia and  quadro.idSessao == self.quadro.idSessao: #ackN
             self._fsm = self.state_ocioso
             
-        
 
     def handle(self):      
-      #o que eu colocaria aqui...
       pass
 
     def handle_timeout(self):

@@ -23,7 +23,8 @@ app = Aplicacao()
 arq = Arq(Timeout)
 
 sessao = Sessao(Timeout)
-
+#sessao.enable()
+#sessao.enable_timeout()
 # Conecta as subcamadas
 # Deve ser feito a partir da subcamada inferior
 #enq.conecta(app)
@@ -37,8 +38,9 @@ sched.adiciona(enq)
 sched.adiciona(app)
 
 if len(sys.argv) > 2:
-    if sys.argv[2] == '--master':
-        sessao.START()
+     if sys.argv[2] == '--master':
+         sessao.master = 1
+         app.START()
 
 #sched.adiciona(arq)
 #enq.enable()

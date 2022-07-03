@@ -1,3 +1,4 @@
+from math import fsum
 from subcamada import Subcamada
 from quadro import Quadro
 
@@ -11,150 +12,127 @@ class Sessao(Subcamada):
         self.master = 0
         
 
-    def envia(self, dados: Quadro):
-        self.quadro = dados
-        print("[SESSÃO]: recebendo da app: " , dados.serialize())
+    def envia(self, quadro: Quadro):
+        self.quadro = quadro
+        print("[SESSÃO]: recebendo da app: " , quadro.serialize())
+        if self.state_desconectado and quadro.data == "start":
+            #envia CR(0)
+            CR = Quadro(tiposessao = quadro.tipoSessao,
+                msgcontrole = 0,sequencia = quadro.sequencia,
+                idsessao = quadro.idSessao)
+            self.lower.envia(CR)    
+            self._fsm = self.state_espera        
         if self._fsm == self.state_conectado:
-            print("[SESSÃO]: enviando pro arq: " , dados.serialize())
-            # enviar um CR e            
-            self.lower.envia(dados)
+            print("[SESSÃO]: enviando pro arq: " , quadro.serialize())
+            self.lower.envia(quadro)
             # ir para o estado espera se for o iniciador
-            if self.master == 1:
-                self._fsm = self.state_espera
+            
+               
+        
 
-    def recebe(self, dados: Quadro):
-        self.quadro = dados
-        self._fsm(dados)
-        print("[SESSÃO]: recebendo do arq: " , dados.serialize())
+    def recebe(self, quadro: Quadro):
+        self.quadro = quadro
+        self._fsm(quadro)
+        print("[SESSÃO]: recebendo do arq: " , quadro.serialize())
     
     # estado desconectado da máquina de estado
-    def state_desconectado(self, dados:Quadro):
-        print('[SESSÃO]: desconectado')
-
+    def state_desconectado(self, quadro:Quadro):
+        print('[SESSÃO]: estado desconectado')
         # se receber um CR
-        if dados.tipoMsgControle == 0: #CR
-            # enviar um CC e
-            
-            CC = Quadro(tiposessao = dados.tipoSessao,
-                msgcontrole = 1,sequencia = dados.sequencia,
-                idsessao = dados.idSessao)
+        print("MSG DE CONTROLE : ", quadro.tipoMsgControle)
+        if quadro.tipoMsgControle == 0: #CR
+            # enviar um CC(1)            
+            CC = Quadro(tiposessao = quadro.tipoSessao,
+                msgcontrole = 1,sequencia = quadro.sequencia,
+                idsessao = quadro.idSessao)
             self.lower.envia(CC)
             # ir para o estado conectado
             self._fsm = self.state_conectado
 
     # estado conectado da máquina de estado
-    def state_conectado(self, dados:Quadro):
-        print('[SESSÃO]: conectado')
+    def state_conectado(self, quadro:Quadro):
+        print('[SESSÃO]: estado conectado')
         self.enable_timeout()
-        # se receber dados
-        if dados.tipoSessao == 0 :
+        # se receber quadro
+        if quadro.tipoSessao == 0 :
             # enviar mensagem para a aplicação e
-            self.upper.recebe(dados)
+            self.upper.recebe(quadro)
             # manter no estado atual
-        # se receber mensagem da aplicação
-        if dados.tipoSessao == 1:
-            # enviar dados e
-            dados.tipoSessao = 0
-            self.lower.envia(dados)
-            # manter no estado atual
+        # se receber mensagem da aplicação        
 
         # se receber um DR
-        if dados.tipoMsgControle == 2:
+        if quadro.tipoMsgControle == 2:
             # enviar um DR e
-            self.lower.envia(dados)
+            self.lower.envia(quadro)
             # ir para o estado half1
             self._fsm = self.state_half1
 
-        # se receber um STOP
-        # if :
-        # receber STOP da onde?
-        # é um comando pra implementar na camada de aplicação?
-            # enviar um DR e
-            # dados.tipoMsgControle = 2
-            # self.lower.envia(dados)
-            # ir para o estado half2
-            # self._fsm = self.state_half2
-
-    # estado half1 da máquina de estado
-    def state_half1(self, dados:Quadro):
+        
+    def state_half1(self, quadro:Quadro):
         print('[SESSÃO]: half1')
 
         # se receber um DR
-        if dados.tipoMsgControle == 2:
+        if quadro.tipoMsgControle == 2:
             # enviar um DR e
-            self.lower.envia(dados)
+            self.lower.envia(quadro)
             # manter no estado atual
 
         # se timeout ou receber um DC
-        elif dados.tipoMsgControle == 3: # or timeout
+        elif quadro.tipoMsgControle == 3: # or timeout
             # enviar um reset para o arq
             reset = Quadro(tiposessao = 1,
-                sequencia = dados.sequencia,
-                idsessao = dados.idSessao,
+                sequencia = quadro.sequencia,
+                idsessao = quadro.idSessao,
                 data = "reset")
-
             self.lower.envia(reset)
             # ir para o estado desconectado
             self._fsm = self.state_desconectado
 
     # estado half2 da máquina de estado
-    def state_half2(self, dados:Quadro):
+    def state_half2(self, quadro:Quadro):
         print('[SESSÃO]: half2')
 
-        # se receber dados
-        if dados.tipoSessao == 0:
+        # se receber quadro
+        if quadro.tipoSessao == 0:
             # enviar mensagem para a aplicação e
-            self.upper.recebe(dados)
+            self.upper.recebe(quadro)
             # manter no estado atual
-
-        # se timeout
-        # if :
-            # enviar DR e
-            # dados.tipoMsgArq = 2
-            # self.lower.envia(dados)
-            # manter no estado atual
-
-        # se timeout
-        # if :
-            # enviar um reset para o arq e
-            # self.lower.envia(dados)
-            # ir para o estado desconectado
-            # self._fsm = self.state_desconectado
 
         # se receber um DR
-        if dados.tipoMsgControle == 2:
+        if quadro.tipoMsgControle == 2:
             # enviar um DC e
-            dados.tipoMsgControle = 3
+            DC = Quadro(tiposessao = quadro.tipoSessao,
+                msgcontrole = 3,sequencia = quadro.sequencia,
+                idsessao = quadro.idSessao)
             # ir para o estado desconectado
             self._fsm = self.state_desconectado
 
-    def state_espera(self, dados:Quadro):
+    def state_espera(self, quadro:Quadro):
         print('[SESSÃO]: espera')
+        print(quadro.tipoMsgControle)
         # se receber um CC
-        if dados.tipoMsgControle == 1:
+        if quadro.tipoMsgControle == 1:
             # ir para o estado conectado
             self._fsm = self.state_conectado
 
-    #isso  é na app e nao na sessao !!!
-    def START(self):
-        # cria o quadro
-        self.master = 1 # definido que esse é o iniciador da conexao
-        start = Quadro(tiposessao = 1,sequencia = 0,
-                idsessao = ,data="start")
-        print('[SESSÃO]: iniciando sessão com id =',start.idSessao)
-
-        if self._fsm == self.state_desconectado:
-            # enviar um CR e           
-            self.lower.envia(start)
-            # ir para o estado espera
-            self._fsm = self.state_espera
-
-    def handle(self, dados:Quadro):
-        print('handle')
-
-        self._fsm(dados)
-
+    def handle(self, quadro:Quadro):
+        pass
+        
     # timeout
     def handle_timeout(self):
+        if self._fsm == self.state_half2 and self._fsm == self.state_half1:
+            reset = Quadro(tiposessao = 1,
+                sequencia = self.quadro.sequencia,
+                idsessao = self.quadro.idSessao,
+                data = "reset")
+            self.lower.envia(reset)
+            self._fsm = self.state_desconectado
+        if self.master == 1 and self._fsm == self.state_espera:
+            reset = Quadro(tiposessao = 1,
+                sequencia = self.quadro.sequencia,
+                idsessao = self.quadro.idSessao,
+                data = "reset")
+            self.lower.envia(reset)
+            self._fsm = self.state_desconectado
         self.disable_timeout()
         

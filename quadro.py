@@ -29,7 +29,7 @@ class Quadro:
     def __init__(self, **kwargs):
         self.controle = 0
         if kwargs is not None:
-
+            # tipo sessao pode ser dados(0) ou controle(1)
             if 'tiposessao' in kwargs:
                 self.tipoSessao = kwargs['tiposessao']
             else:
