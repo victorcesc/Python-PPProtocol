@@ -87,4 +87,13 @@ $ python3 test.py [porta_serial_2] --master
 
 O projeto então irá rodar e poderá testar o envio e recebimento de mensagens entre um terminal e o outro através das portas seriais dadas pelo serialemu, como podemos ver a seguir:
 
-![](snapshot_teste_protocolo.png)
+![](teste_protocolo_rx.png)
+![](teste_protocolo_master.png)
+
+Para rodar com debug e verificar as etapas das subcamadas basta adicionar o parâmetro "--debug" como no exemplo:
+
+```bash
+$ python3 test.py [porta_serial_2] --master --debug
+
+$ python3 test.py [porta_serial_1] --debug
+```

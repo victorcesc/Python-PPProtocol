@@ -9,7 +9,6 @@ from serial import Serial
 
 Timeout = 7 
 
-
 # nome da porta serial informada como primeiro argumento
 # de linha de comando
 porta = sys.argv[1]
@@ -23,11 +22,11 @@ app = Aplicacao()
 arq = Arq(Timeout)
 
 sessao = Sessao(Timeout)
-#sessao.enable()
-#sessao.enable_timeout()
+# sessao.enable()
+# sessao.enable_timeout()
 # Conecta as subcamadas
 # Deve ser feito a partir da subcamada inferior
-#enq.conecta(app)
+# enq.conecta(app)
 enq.conecta(arq)
 arq.conecta(sessao)
 sessao.conecta(app)
@@ -38,13 +37,18 @@ sched.adiciona(enq)
 sched.adiciona(app)
 
 if len(sys.argv) > 2:
-     if sys.argv[2] == '--master':
-         sessao.master = 1
-         app.START()
+    if sys.argv[2] or sys.argv[3] == '--debug':
+        app.debug = True
+        sessao.debug = True
+        arq.debug = True
+        enq.debug = True
+    if sys.argv[2] == '--master':
+        sessao.master = 1
+        app.START()
 
-#sched.adiciona(arq)
-#enq.enable()
-#enq.enable_timeout()
+# sched.adiciona(arq)
+# enq.enable()
+# enq.enable_timeout()
 # entrega o controle ao Poller
 
 try:

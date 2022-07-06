@@ -10,11 +10,10 @@ class Sessao(Subcamada):
         self._fsm = self.state_desconectado
         self.quadro = None
         self.master = 0
-        
+        self.debug = False
 
     def envia(self, quadro: Quadro):
         self.quadro = quadro
-        print("[SESSÃO]: recebendo da app: " , quadro.serialize())
         if self.state_desconectado and quadro.data == "start":
             #envia CR(0)
             CR = Quadro(tiposessao = quadro.tipoSessao,
@@ -23,24 +22,19 @@ class Sessao(Subcamada):
             self.lower.envia(CR)    
             self._fsm = self.state_espera        
         if self._fsm == self.state_conectado:
-            print("[SESSÃO]: enviando pro arq: " , quadro.serialize())
             self.lower.envia(quadro)
             # ir para o estado espera se for o iniciador
             
-               
-        
-
     def recebe(self, quadro: Quadro):
         self.quadro = quadro
         self._fsm(quadro)
-        print("[SESSÃO]: recebendo do arq: " , quadro.serialize())
     
     # estado desconectado da máquina de estado
     def state_desconectado(self, quadro:Quadro):
-        print('[SESSÃO]: estado desconectado')
         # se receber um CR
-        print("MSG DE CONTROLE : ", quadro.tipoMsgControle)
-        if quadro.tipoMsgControle == 0: #CR
+        if quadro.tipoMsgControle == 0: # CR
+            if self.debug:
+                print('[SESSÃO]: recebeu quadro de controle CR')
             # enviar um CC(1)            
             CC = Quadro(tiposessao = quadro.tipoSessao,
                 msgcontrole = 1,sequencia = quadro.sequencia,
@@ -51,7 +45,6 @@ class Sessao(Subcamada):
 
     # estado conectado da máquina de estado
     def state_conectado(self, quadro:Quadro):
-        print('[SESSÃO]: estado conectado')
         self.enable_timeout()
         # se receber quadro
         if quadro.tipoSessao == 0 :
@@ -66,11 +59,8 @@ class Sessao(Subcamada):
             self.lower.envia(quadro)
             # ir para o estado half1
             self._fsm = self.state_half1
-
         
     def state_half1(self, quadro:Quadro):
-        print('[SESSÃO]: half1')
-
         # se receber um DR
         if quadro.tipoMsgControle == 2:
             # enviar um DR e
@@ -90,8 +80,6 @@ class Sessao(Subcamada):
 
     # estado half2 da máquina de estado
     def state_half2(self, quadro:Quadro):
-        print('[SESSÃO]: half2')
-
         # se receber quadro
         if quadro.tipoSessao == 0:
             # enviar mensagem para a aplicação e
@@ -108,10 +96,10 @@ class Sessao(Subcamada):
             self._fsm = self.state_desconectado
 
     def state_espera(self, quadro:Quadro):
-        print('[SESSÃO]: espera')
-        print(quadro.tipoMsgControle)
         # se receber um CC
         if quadro.tipoMsgControle == 1:
+            if self.debug:
+                print('[SESSÃO]: recebeu quadro de controle CC')
             # ir para o estado conectado
             self._fsm = self.state_conectado
 
@@ -135,4 +123,3 @@ class Sessao(Subcamada):
             self.lower.envia(reset)
             self._fsm = self.state_desconectado
         self.disable_timeout()
-        

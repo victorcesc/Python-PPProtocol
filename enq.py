@@ -12,38 +12,24 @@ class Enquadramento(Subcamada):
         except Exception as e:
             print('Não conseguiu acessar a porta serial', e)
             sys.exit(0)
-        Subcamada.__init__(self,self._serial,t_out)                     
-        self.buffer = bytearray() #buffer que recebe os bytes        
+        Subcamada.__init__(self,self._serial,t_out)
+        self.debug = False
+        self.buffer = bytearray() # buffer que recebe os bytes
         self._fsm = self.state_idle
     
     def envia(self,quadro:Quadro):
-        #self.esc(dados)
         dados = bytearray()
         dados.append(0x7e)
         dados += quadro.serialize()        
         dados.append(0x7e)
-        print("[ENQ]: escrevendo na porta serial" , quadro.serialize())
-        self._serial.write(dados) #escreve na porta serial
+        self._serial.write(dados) # escreve na porta serial
+        if self.debug:
+                print('[ENQ]: enviando quadro, tamanho =', len(dados))
   
     def recebe(self):
-        #logica de recepcao do enquadramento - fsm
+        # lógica de recepcao do enquadramento - fsm
         octeto = self._serial.read(1)
-        # print("[ENQ]: recebendo do arq" , octeto.serialize()) 
-        self._fsm(octeto)  
-
-    def esc(self, dados):
-        quadro = bytearray(dados)
-
-        x = quadro.find(0x7e)
-       # print(x)
-        if x > 0:            
-            quadro.insert(x, 110)        
-        #print(x)
-        # while(x > 0):
-        #     print(x)
-        #     quadro.insert(x, 0x7d)
-
-        return quadro
+        self._fsm(octeto)
         
     def state_rx(self,octeto):              
         if octeto.decode(errors='replace') == "~":
@@ -73,7 +59,7 @@ class Enquadramento(Subcamada):
         
     def state_esc(self,octeto):        
         if octeto.decode(errors='replace') == "}" or octeto.decode(errors='replace') == "~": #or timeout
-            #descarta
+            # descarta
             self._fsm = self.state_idle                
         octeto = chr(ord(octeto.decode()) ^ ord(bytes(" ",'utf-8').decode())) #xor com 0x20(" ")
         self.buffer += octeto.encode()
@@ -96,6 +82,6 @@ class Enquadramento(Subcamada):
         idSessao = dados[1]
         idProto = dados[2]
         data = dados[3:len(dados)-2].decode(errors='replace')
-        #fcs nao precisa pq é gerado qnd é serializado novamente        
+        # fcs nao precisa pq é gerado qnd é serializado novamente        
         quadro = Quadro(tiposessao = tiposessao, msgarq = msgarq,sequencia = sequencia,msgcontrole=msgcontrole,idsessao = idSessao,idproto = idProto,data = data)
         return quadro

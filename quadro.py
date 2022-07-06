@@ -75,7 +75,6 @@ class Quadro:
             if data[i] == 0x7e:
                 new_data.append(0x7d)
                 new_data.append(xor(data[i], 0x02))
-                print('esc encontrado')
             else:
                 new_data.append(data[i])
 
