@@ -1,0 +1,67 @@
+- não é possível definir o id de sessão, tampouco foi informado no manual
+
+- A conexão pode ser estabelecida em ambas direções: iniciada pelo protocolo da equipe, ou pelo protocolo de referência.
+
+- O protocolo da equipe corretamente descarta quadros com erro de CRC
+
+- O protocolo da equipe não retransmite quadros não confirmados !
+
+- O protocolo da equipe aceita quadros duplicados, ao invés de somente confirmá-los e então descartá-los.
+
+- O protocolo da equipe recupera sincronismo de quadro após perda de flag inicial ou final
+
+Nos testes a seguir, o lado master é o protocolo de referência, e o o outro lado é o da equipe:
+
+- arq envia quadro com sequência errada. A seguir mostra-se o lado master da conexão, que envia um quadro de dados e recebe corretamente uma confirmação. Em seguida, o outro lado envia uma mensagem, mas ela vem com número de sequência diferente do esperado.
+
+[SESSÃO] 0.000: iniciando sessão com id=
+[ARQ] 0.000: payload a enviar, estado=Ocioso
+[ARQ] 0.000: enviando DATA , seq=0
+[ARQ] 0.491: quadro ACK recebido, seq= 0, tx_seq=0, estado=Espera
+[ARQ] 0.491: quadro DATA recebido, seq= 0, rx_seq=0, estado=Ocioso
+[ARQ] 0.491: enviando ack=0
+[ARQ] 0.491: entregando quadro para subcamada superior
+[SESSÃO] 0.491: recebeu quadro de controle CC
+abbbccccc
+Adaptação: enviando abbbccccc
+[SESSÃO] 7.305: novo quadro de dados para enviar
+[ARQ] 7.305: payload a enviar, estado=Ocioso
+[ARQ] 7.305: enviando DATA , seq=0
+[ARQ] 7.305: quadro ACK recebido, seq= 1, tx_seq=1, estado=Espera
+[ARQ] 11.921: quadro DATA recebido, seq= 0, rx_seq=1, estado=Ocioso
+[ARQ] 11.921: enviando ack=0
+[ARQ] 11.921: descartando quadro duplicado
+
+Se o outro lado enviar mais um quadro, ele será aceito, porque aí ajustou o número de sequência:
+
+[ARQ] 182.150: quadro DATA recebido, seq= 1, rx_seq=1, estado=Ocioso
+[ARQ] 182.150: enviando ack=1
+[ARQ] 182.150: entregando quadro para subcamada superior
+[SESSÃO] 182.150: recebeu quadro de dados
+Recebido: 444444
+
+- ao fazer o lado master enviar um lote de linhas de texto, para forçar o envio unidirecional de muitas mensagens antes de sequer receber a cofirmação da primeira delas, funcionou como esperado. Mas no sentido contrário, não ... apenas a prmiera das mensagens foi recebida, as demais chegaram com sequência errada. 
+
+Do lado que enviou:
+
+Enviando: mensagem 1
+
+Enviando: mensagem 2
+
+Enviando: mensagem 3
+
+O lado que recebeu (master):
+
+[ARQ] 427.526: quadro DATA recebido, seq= 0, rx_seq=1, estado=Ocioso
+[ARQ] 427.526: enviando ack=0
+[ARQ] 427.526: descartando quadro duplicado
+[ARQ] 635.318: quadro DATA recebido, seq= 1, rx_seq=1, estado=Ocioso
+[ARQ] 635.318: enviando ack=1
+[ARQ] 635.318: entregando quadro para subcamada superior
+[SESSÃO] 635.318: recebeu quadro de dados
+Recebido: mensagem 1
+
+
+
+
+
