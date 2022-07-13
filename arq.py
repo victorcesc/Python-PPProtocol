@@ -1,3 +1,4 @@
+from queue import Queue
 import sys
 from subcamada import Subcamada
 from quadro import Quadro
@@ -17,12 +18,12 @@ class Arq(Subcamada):
         self.debug = False
         self.sequencia_M = 0
         self.sequencia_N = 0
-        self.queue_msg = []
+        self.queue_msg = Queue()
+        
   
     def recebe(self, quadro:Quadro):
         self.quadro = quadro
         self.sequencia_M = quadro.sequencia
-        #self.queue_msg.append(quadro)
         self._fsm(quadro)
         if self.debug:
                 print('[ARQ]: entregando quadro para camada superior, tamanho =', len(quadro.serialize()))
