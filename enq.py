@@ -38,7 +38,7 @@ class Enquadramento(Subcamada):
                 quadro = self.desserializa(self.buffer)        
                 self.upper.recebe(quadro)
                 self.buffer.clear()                             
-                self._fsm = self.state_idle
+            self._fsm = self.state_idle
         if octeto.decode(errors='replace') == "}":
             self._fsm = self.state_esc
         if octeto.decode(errors='replace') != "~" and octeto.decode(errors='replace') != "}":
