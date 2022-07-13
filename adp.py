@@ -7,7 +7,7 @@ class Aplicacao(Subcamada):
     def __init__(self):
         Subcamada.__init__(self, sys.stdin)
         self.idsessao = 0 #idsessao
-        self.sequencia = 1 #Sequencia de transmissao = 1
+        self.sequencia = 0 
         self.debug = False
   
     def recebe(self, dados:Quadro):
@@ -20,10 +20,11 @@ class Aplicacao(Subcamada):
         dados = sys.stdin.readline()
         # chamada do STOP da sessao...
         if dados == "##stop":
-            self.STOP()
+            self.STOP()        
         
-        quadro = Quadro(tiposessao = 0,msgarq = 0,idsessao = self.idsessao,sequencia = self.sequencia,data = dados)      
         self.sequencia = not self.sequencia
+        quadro = Quadro(tiposessao = 0,msgarq = 0,idsessao = self.idsessao,sequencia = self.sequencia,data = dados)      
+        #
         # self.idsessao = self.idsessao + 1
         # envia os dados para a subcamada inferior (self.lower)
         print("Enviando:", quadro.data)
@@ -37,7 +38,7 @@ class Aplicacao(Subcamada):
         if self.debug:
             print('[SESSÃO]: iniciando sessão com id =', start.idSessao)
         self.lower.envia(start)
-        self.sequencia = 1
+        #self.sequencia = 1
 
     def STOP(self):
         stop = Quadro(tiposessao = 1,sequencia = 0,
