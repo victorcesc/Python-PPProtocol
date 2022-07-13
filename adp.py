@@ -21,9 +21,10 @@ class Aplicacao(Subcamada):
         # chamada do STOP da sessao...
         if dados == "##stop":
             self.STOP()
+        self.sequencia = not self.sequencia #sequencia TX
         quadro = Quadro(tiposessao = 0,msgarq = 0,idsessao = self.idsessao,sequencia = self.sequencia,data = dados)      
         # self.idsessao = self.idsessao + 1
-        self.sequencia = not self.sequencia
+        
         # envia os dados para a subcamada inferior (self.lower)
         print("Enviando:", quadro.data)
         self.lower.envia(quadro)
