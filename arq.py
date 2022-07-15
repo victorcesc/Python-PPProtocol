@@ -25,17 +25,19 @@ class Arq(Subcamada):
         self._fsm(quadro)
         if self.debug:
                 print('[ARQ]: entregando quadro para camada superior, tamanho =', len(quadro.serialize()))       
-      # dados recebidos da subcamada inferior
         if quadro.tipoMsgArq == 0:
            self.sequencia_M = not self.sequencia_M  
  
     def envia(self,quadro:Quadro):
         self.quadro = quadro
+        self.queue_msg.put(quadro) 
         if quadro.data == "reset":
             self._fsm = self.state_ocioso
             self.quadro = None
         if self._fsm == self.state_ocioso:
-           self.lower.envia(quadro) # !dataN 
+           if self.queue_msg.qsize() > 1:                     
+              self.lower.envia(self.queue_msg.get()) # !dataN     
+           self.lower.envia(self.queue_msg.get())      
            self._fsm = self.state_espera
         
         
@@ -44,7 +46,6 @@ class Arq(Subcamada):
     def state_ocioso(self, quadro:Quadro):
         # M = 0
         # _M = 1
-        
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.sequencia_M and  quadro.idSessao == self.quadro.idSessao:# dataM 
             ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = quadro.sequencia,idsessao = quadro.idSessao)  
             # ack idSessao tem q ser igual ao quadro data recebido
@@ -56,7 +57,6 @@ class Arq(Subcamada):
             ack_M  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.sequencia_M,idsessao = quadro.idSessao)
             self.lower.envia(ack_M) # envia p camada de baixo 
             self._fsm = self.state_ocioso
-
 
     def state_espera(self, quadro:Quadro):
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.sequencia_M and  quadro.idSessao == self.quadro.idSessao: # ackM , app!msg
@@ -71,8 +71,8 @@ class Arq(Subcamada):
             self.lower.envia(ack_M)
             self._fsm = self.state_espera            
         
-        
         if quadro.tipoMsgArq == 1 and quadro.sequencia != self.sequencia_N and  quadro.idSessao == self.quadro.idSessao: # ack_N
+            self.sequencia_N = not self.sequencia_N            
             self._fsm = self.state_espera
             
         if quadro.tipoMsgArq == 1 and quadro.sequencia == self.sequencia_N and  quadro.idSessao == self.quadro.idSessao:
