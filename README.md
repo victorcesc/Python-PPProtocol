@@ -97,3 +97,15 @@ $ python3 test.py [porta_serial_2] --master --debug
 
 $ python3 test.py [porta_serial_1] --debug
 ```
+
+Para definir o id da sessão basta adicionar o parâmetro "--idSessao número_id" como no exemplo:
+
+```bash
+$ python3 test.py [porta_serial_2] --master --debug --idSessao 32
+
+$ python3 test.py [porta_serial_2] --master --idSessao 32
+
+$ python3 test.py [porta_serial_1] --debug --idSessao 16
+
+$ python3 test.py [porta_serial_1] --idSessao 8
+```

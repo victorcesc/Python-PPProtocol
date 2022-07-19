@@ -30,8 +30,9 @@ class Aplicacao(Subcamada):
         print("Enviando:", quadro.data)
         self.lower.envia(quadro)
 
-    def START(self):
+    def START(self, idSessao):
         # se for o master inicia uma conexao
+        self.idsessao = idSessao
         start = Quadro(tiposessao = 1,sequencia = 0,
                 idsessao = self.idsessao,
                 data="start")

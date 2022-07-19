@@ -37,14 +37,25 @@ sched.adiciona(enq)
 sched.adiciona(app)
 
 if len(sys.argv) > 2:
+
     if sys.argv[2] or sys.argv[3] == '--debug':
         app.debug = True
         sessao.debug = True
         arq.debug = True
         enq.debug = True
+
     if sys.argv[2] == '--master':
         sessao.master = 1
-        app.START()
+        if sys.argv[2] == '--idSessao':
+            app.START(int(sys.argv[3]));
+        elif sys.argv[3] == '--idSessao':
+            app.START(int(sys.argv[4]));
+        elif sys.argv[4] == '--idSessao':
+            app.START(int(sys.argv[5]));
+        elif sys.argv[5] == '--idSessao':
+            app.START(int(sys.argv[6]));
+        else:
+            app.START(0)
 
 # sched.adiciona(arq)
 # enq.enable()
