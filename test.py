@@ -1,17 +1,25 @@
 from arq import Arq
 from pypoller import poller
 import sys
+import argparse
 from sessao import Sessao
 from subcamada import Subcamada
 from enq import Enquadramento
 from adp import Aplicacao
 from serial import Serial
 
+parser = argparse.ArgumentParser()
+parser.add_argument('porta', help='define a porta serial a ser usada')
+parser.add_argument('--debug', help='mostra depuração do código', action='store_true')
+parser.add_argument('--master', help='define como o inicializador de conexão', action='store_true')
+parser.add_argument('--idSessao', help='define o id da sessão')
+args = parser.parse_args()
+
 Timeout = 7 
 
 # nome da porta serial informada como primeiro argumento
 # de linha de comando
-porta = sys.argv[1]
+porta = args.porta
 
 # cria objeto Enquadramento
 enq = Enquadramento(porta, Timeout)
@@ -36,26 +44,18 @@ sched = poller.Poller()
 sched.adiciona(enq)
 sched.adiciona(app)
 
-if len(sys.argv) > 2:
+if args.debug:
+    app.debug = True
+    sessao.debug = True
+    arq.debug = True
+    enq.debug = True
 
-    if sys.argv[2] or sys.argv[3] == '--debug':
-        app.debug = True
-        sessao.debug = True
-        arq.debug = True
-        enq.debug = True
-
-    if sys.argv[2] == '--master':
-        sessao.master = 1
-        if sys.argv[2] == '--idSessao':
-            app.START(int(sys.argv[3]));
-        elif sys.argv[3] == '--idSessao':
-            app.START(int(sys.argv[4]));
-        elif sys.argv[4] == '--idSessao':
-            app.START(int(sys.argv[5]));
-        elif sys.argv[5] == '--idSessao':
-            app.START(int(sys.argv[6]));
-        else:
-            app.START(0)
+if args.master:
+    sessao.master = 1
+    if args.idSessao:
+        app.START(int(args.idSessao))
+    else:
+        app.START(0)
 
 # sched.adiciona(arq)
 # enq.enable()
