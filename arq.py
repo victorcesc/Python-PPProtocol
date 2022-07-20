@@ -22,6 +22,8 @@ class Arq(Subcamada):
   
     def recebe(self, quadro:Quadro):
         self.quadro = quadro
+        print("Quadro : ", self.quadro.data)
+        print("estado recebe : " ,self._fsm)
         self._fsm(quadro)
         if self.debug:
                 print('[ARQ]: entregando quadro para camada superior, tamanho =', len(quadro.serialize()))       
@@ -29,6 +31,7 @@ class Arq(Subcamada):
            self.sequencia_M = not self.sequencia_M  
  
     def envia(self,quadro:Quadro):
+        print("estado envia : ",self._fsm)
         self.quadro = quadro
         self.queue_msg.put(quadro) 
         if quadro.data == "reset":
@@ -36,7 +39,8 @@ class Arq(Subcamada):
             self.quadro = None
         if self._fsm == self.state_ocioso:
            if self.queue_msg.qsize() > 1:                     
-              self.lower.envia(self.queue_msg.get()) # !dataN     
+              self.lower.envia(self.queue_msg.get()) # !dataN 
+              self.sequencia_N = not self.sequencia_N    
            self.lower.envia(self.queue_msg.get())      
            self._fsm = self.state_espera
         
@@ -47,6 +51,8 @@ class Arq(Subcamada):
         # M = 0
         # _M = 1
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.sequencia_M and  quadro.idSessao == self.quadro.idSessao:# dataM 
+            print("recebendo dataM")
+            print("sequencia correta: ",self.sequencia_M, "sequencia q veio : " ,quadro.sequencia )
             ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = quadro.sequencia,idsessao = quadro.idSessao)  
             # ack idSessao tem q ser igual ao quadro data recebido
             self.lower.envia(ack) # envia pra camada de baixo             
@@ -54,12 +60,15 @@ class Arq(Subcamada):
             self._fsm = self.state_ocioso
 
         if quadro.tipoMsgArq == 0 and quadro.sequencia !=  self.sequencia_M and  quadro.idSessao == self.quadro.idSessao: # data_M
-            ack_M  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.sequencia_M,idsessao = quadro.idSessao)
+            print("recebendo data_M")
+            print("preciso da retransmissao!!! sequencia correta: ",self.sequencia_M, "sequencia q veio : " ,quadro.sequencia )
+            ack_M  = Quadro(tiposessao = 0,msgarq = 1,sequencia = quadro.sequencia,idsessao = quadro.idSessao)
             self.lower.envia(ack_M) # envia p camada de baixo 
             self._fsm = self.state_ocioso
 
     def state_espera(self, quadro:Quadro):
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.sequencia_M and  quadro.idSessao == self.quadro.idSessao: # ackM , app!msg
+            print("entrou aqui dataM, devolvendo ackM")
             ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = quadro.sequencia,idsessao = quadro.idSessao)
             self.lower.envia(ack)
             self.upper.recebe(quadro)
@@ -67,17 +76,26 @@ class Arq(Subcamada):
             self._fsm = self.state_espera
             
         if quadro.tipoMsgArq == 0 and quadro.sequencia != self.sequencia_M and  quadro.idSessao == self.quadro.idSessao  : # data_M
+            print("entrou aqui data_M devolvendo ack_M")
             ack_M  = Quadro(tiposessao = 0,msgarq = 1,sequencia = self.sequencia_M,idsessao = quadro.idSessao)
             self.lower.envia(ack_M)
             self._fsm = self.state_espera            
         
         if quadro.tipoMsgArq == 1 and quadro.sequencia != self.sequencia_N and  quadro.idSessao == self.quadro.idSessao: # ack_N
-            self.sequencia_N = not self.sequencia_N            
+            print("ack_N retransmite?")
+            self.quadro.sequencia = not self.quadro.sequencia
+            self.lower.envia(self.quadro)                 
             self._fsm = self.state_espera
             
         if quadro.tipoMsgArq == 1 and quadro.sequencia == self.sequencia_N and  quadro.idSessao == self.quadro.idSessao:
+            print("AckN normal")
             self.sequencia_N = not self.sequencia_N            
             self._fsm = self.state_ocioso
+
+        if quadro.tipoMsgArq == None:
+            print("retransmitindo", self.quadro)
+            self.lower.envia(self.quadro)
+        
 
     def handle(self):      
         pass
