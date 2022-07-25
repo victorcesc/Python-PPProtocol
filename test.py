@@ -42,6 +42,7 @@ sessao.conecta(app)
 sched = poller.Poller()
 
 sched.adiciona(enq)
+sched.adiciona(arq)
 sched.adiciona(app)
 
 if args.debug:
