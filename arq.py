@@ -22,6 +22,7 @@ class Arq(Subcamada):
   
     def recebe(self, quadro:Quadro):
         self.quadro = quadro
+        print("RECEBE timeout enabled? : ", self.timeout_enabled)
         print("Quadro : ", self.quadro.data)
         print("estado recebe : " ,self._fsm)
         self._fsm(quadro)
@@ -32,6 +33,7 @@ class Arq(Subcamada):
  
     def envia(self,quadro:Quadro):
         print("estado envia : ",self._fsm)
+        print("ENVIA timeout enabled? : ", self.timeout_enabled)
         self.quadro = quadro
         self.queue_msg.put(quadro) 
         if quadro.data == "reset":
@@ -50,6 +52,7 @@ class Arq(Subcamada):
     def state_ocioso(self, quadro:Quadro):
         # M = 0
         # _M = 1
+        self.disable_timeout()
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.sequencia_M and  quadro.idSessao == self.quadro.idSessao:# dataM 
             print("recebendo dataM")
             print("sequencia correta: ",self.sequencia_M, "sequencia q veio : " ,quadro.sequencia )
@@ -66,7 +69,10 @@ class Arq(Subcamada):
             self.lower.envia(ack_M) # envia p camada de baixo 
             self._fsm = self.state_ocioso
 
-    def state_espera(self, quadro:Quadro):
+    def state_espera(self, quadro:Quadro, timeout:bool = False):
+        if not self.timeout_enabled:
+            self.reload_timeout()
+            self.enable_timeout()
         if quadro.tipoMsgArq == 0 and quadro.sequencia == self.sequencia_M and  quadro.idSessao == self.quadro.idSessao: # ackM , app!msg
             print("entrou aqui dataM, devolvendo ackM")
             ack  = Quadro(tiposessao = 0,msgarq = 1,sequencia = quadro.sequencia,idsessao = quadro.idSessao)
@@ -92,14 +98,16 @@ class Arq(Subcamada):
             self.sequencia_N = not self.sequencia_N            
             self._fsm = self.state_ocioso
 
-        if quadro.tipoMsgArq == None:
+        if timeout:
             print("retransmitindo", self.quadro)
             self.lower.envia(self.quadro)
-        
+            self.disable_timeout()
 
     def handle(self):      
         pass
 
     def handle_timeout(self):
-        self.lower.envia(self.quadro)
+        print("TIMEOUT")
+        if self._fsm == self.state_espera:
+            self._fsm(self.quadro,True)
         
