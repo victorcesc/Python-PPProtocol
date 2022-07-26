@@ -12,7 +12,7 @@ from quadro import Quadro
 class Arq(Subcamada):
     
     def __init__(self, timeout):
-        Subcamada.__init__(self, timeout)
+        Subcamada.__init__(self, None,timeout)
         self._fsm = self.state_ocioso
         self.quadro = None
         self.debug = False
